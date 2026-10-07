@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Keep GitHub Actions pinned versions fresh.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Server-layer Python dependencies (requirements.txt).
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Base image (nvidia/cuda) digest / tag bumps.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"

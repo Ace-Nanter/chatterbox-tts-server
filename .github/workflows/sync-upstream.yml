@@ -1,0 +1,43 @@
+name: Sync upstream Chatterbox
+
+# Chatterbox upstream (resemble-ai/chatterbox) publishes no usable release tags, and the
+# PyPI package lags behind the V3 checkpoint, so the image is built from a pinned upstream
+# commit. This job keeps that pin fresh. Dependabot cannot track git dependencies, so a
+# weekly check is the minimal necessary mechanism.
+
+on:
+  schedule:
+    - cron: "0 4 * * 1" # Every Monday at 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve upstream HEAD and current pin
+        id: up
+        run: |
+          UP=$(git ls-remote https://github.com/resemble-ai/chatterbox.git HEAD | cut -c1-10)
+          CUR=$(grep -oP 'ARG CHATTERBOX_REF=\K[0-9a-f]+' Dockerfile || echo "")
+          echo "upstream=$UP current=$CUR"
+          echo "upstream=$UP" >> "$GITHUB_OUTPUT"
+          echo "current=$CUR" >> "$GITHUB_OUTPUT"
+
+      - name: Update pinned ref
+        if: steps.up.outputs.upstream != steps.up.outputs.current
+        run: |
+          sed -i "s/^ARG CHATTERBOX_REF=.*/ARG CHATTERBOX_REF=${{ steps.up.outputs.upstream }}/" Dockerfile
+
+      - name: Commit and push
+        if: steps.up.outputs.upstream != steps.up.outputs.current
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "🔄 Bump Chatterbox upstream to ${{ steps.up.outputs.upstream }}"
+          git push
