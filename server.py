@@ -57,17 +57,19 @@ VOICES_DIR.mkdir(parents=True, exist_ok=True)
 app = FastAPI(title="Chatterbox TTS Server", version="1.0.0")
 
 _model = None
+_sr = SAMPLE_RATE
 _lock = threading.Lock()
 
 
 def _load() -> None:
     """Load the multilingual model once at startup (downloads from HF on first run)."""
-    global _model
+    global _model, _sr
     from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
     model = ChatterboxMultilingualTTS.from_pretrained(device=DEVICE, t3_model=T3_MODEL)
     _model = model
-    log.info("model ready: t3=%s device=%s sr=%s", T3_MODEL, DEVICE, getattr(model, "sr", SAMPLE_RATE))
+    _sr = int(getattr(model, "sr", SAMPLE_RATE))
+    log.info("model ready: t3=%s device=%s sr=%s", T3_MODEL, DEVICE, _sr)
 
 
 @app.on_event("startup")
@@ -237,5 +239,5 @@ async def speech(request: Request) -> Response:
         with torch.inference_mode():
             wav = model.generate(text, language_id=lang, **kwargs)
 
-    data, mime = _encode(wav, SAMPLE_RATE, body.get("response_format", "wav"))
+    data, mime = _encode(wav, _sr, body.get("response_format", "wav"))
     return Response(content=data, media_type=mime)
