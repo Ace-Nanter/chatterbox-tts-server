@@ -3,7 +3,7 @@
 # Pinned to a specific upstream commit of Resemble AI's chatterbox (the PyPI package is
 # stale and does NOT contain the Multilingual V3 checkpoint — see README). The pinned SHA
 # is kept fresh automatically by .github/workflows/sync-upstream.yml.
-FROM nvidia/cuda:13.4.2-runtime-ubuntu22.04
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
 
 # Upstream commit of https://github.com/resemble-ai/chatterbox to build against.
 ARG CHATTERBOX_REF=5de7a54aa4

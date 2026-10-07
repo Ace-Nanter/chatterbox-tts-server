@@ -18,6 +18,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Enable auto-merge (squash)
+        # Never auto-merge a semver-major bump (e.g. nvidia/cuda): those need
+        # manual validation against the pinned torch/CUDA build.
+        if: steps.meta.outputs.update-type != 'version-update:semver-major'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}

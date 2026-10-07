@@ -17,3 +17,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      # A CUDA major bump changes the runtime and must be validated manually
+      # against the torch build (cu124); never auto-bump majors.
+      - dependency-name: "nvidia/cuda"
+        update-types: ["version-update:semver-major"]

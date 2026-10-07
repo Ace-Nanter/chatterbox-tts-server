@@ -25,7 +25,15 @@ jobs:
         id: vars
         run: |
           # The registry host is a secret and never appears in the repository.
-          IMAGE_ID=$(echo "${{ secrets.DOCKER_REGISTRY_HOST }}/$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          # On pull_request the image is only built (never pushed), so tag it
+          # locally without a registry prefix: an empty DOCKER_REGISTRY_HOST
+          # would otherwise produce an invalid "/name:tag" reference.
+          IMAGE_NAME=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            IMAGE_ID="$IMAGE_NAME"
+          else
+            IMAGE_ID=$(echo "${{ secrets.DOCKER_REGISTRY_HOST }}/$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          fi
           VERSION=$(echo "${GITHUB_REF}" | sed -e 's,.*/\(.*\),\1,')
           [[ "${GITHUB_REF}" == refs/tags/* ]] && VERSION=$(echo "$VERSION" | sed -e 's/^v//')
           [ "$VERSION" == "main" ] && VERSION=latest
