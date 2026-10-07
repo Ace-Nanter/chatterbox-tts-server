@@ -12,6 +12,10 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     env:
+      # The registry host is public (same setup as BunnyBot); only the
+      # credentials are secrets. The README keeps a placeholder and never
+      # mentions this host.
+      DOCKER_REGISTRY_HOST: docker-registry.pandore.ovh
       IMAGE_NAME: ${{ github.event.repository.name }}
 
     steps:
@@ -24,8 +28,7 @@ jobs:
       - name: Prepare variables
         id: vars
         run: |
-          # The registry host is a secret and never appears in the repository.
-          IMAGE_ID=$(echo "${{ secrets.DOCKER_REGISTRY_HOST }}/$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          IMAGE_ID=$(echo "$DOCKER_REGISTRY_HOST/$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
           VERSION=$(echo "${GITHUB_REF}" | sed -e 's,.*/\(.*\),\1,')
           [[ "${GITHUB_REF}" == refs/tags/* ]] && VERSION=$(echo "$VERSION" | sed -e 's/^v//')
           [ "$VERSION" == "main" ] && VERSION=latest
@@ -37,7 +40,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           echo "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | \
-            docker login ${{ secrets.DOCKER_REGISTRY_HOST }} \
+            docker login "$DOCKER_REGISTRY_HOST" \
               --username "${{ secrets.DOCKER_REGISTRY_USERNAME }}" --password-stdin
 
       - name: Build and push
