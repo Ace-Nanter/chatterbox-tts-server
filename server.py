@@ -36,11 +36,24 @@ from fastapi.responses import HTMLResponse, Response
 log = logging.getLogger("chatterbox")
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 
+
+def _env(new: str, legacy: str, default: str) -> str:
+    """Prefer the new TTS_* variable; fall back to the legacy CHATTERBOX_* one.
+
+    Backwards compatibility for the project rename: existing compose files and
+    images may still pass the old names, in any upgrade order.
+    """
+    value = os.environ.get(new)
+    if value is not None:
+        return value
+    return os.environ.get(legacy, default)
+
+
 VOICES_DIR = Path(os.environ.get("VOICES_DIR", "/app/voices"))
-DEVICE = os.environ.get("CHATTERBOX_DEVICE", "cuda")
-T3_MODEL = os.environ.get("CHATTERBOX_T3_MODEL", "v3")  # "v3" (default) or "v2"
-DEFAULT_LANG = os.environ.get("CHATTERBOX_DEFAULT_LANG", "en")
-SAMPLE_RATE = int(os.environ.get("CHATTERBOX_SAMPLE_RATE", "24000"))
+DEVICE = _env("TTS_DEVICE", "CHATTERBOX_DEVICE", "cuda")
+T3_MODEL = _env("TTS_T3_MODEL", "CHATTERBOX_T3_MODEL", "v3")  # "v3" (default) or "v2"
+DEFAULT_LANG = _env("TTS_DEFAULT_LANG", "CHATTERBOX_DEFAULT_LANG", "en")
+SAMPLE_RATE = int(_env("TTS_SAMPLE_RATE", "CHATTERBOX_SAMPLE_RATE", "24000"))
 
 # Language codes supported by Chatterbox Multilingual.
 LANGUAGES = {

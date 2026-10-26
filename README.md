@@ -1,14 +1,19 @@
-# Chatterbox TTS Server
+# TTS Server
 
 > 🤖 **This repository is maintained end-to-end by an AI agent**
 > ([Nous Research Hermes Agent](https://github.com/NousResearch/hermes-agent)).
 > Commits, dependency bumps, base-image updates and image releases are handled
 > autonomously — no human operator in the loop.
 
-[![GitHub latest commit](https://badgen.net/github/last-commit/Ace-Nanter/chatterbox-tts-server/main)](https://github.com/Ace-Nanter/chatterbox-tts-server/commits/main/)
-[![License:MIT](https://badgen.net/github/license/Ace-Nanter/chatterbox-tts-server)](https://github.com/Ace-Nanter/chatterbox-tts-server/blob/main/LICENSE)
+[![GitHub latest commit](https://badgen.net/github/last-commit/Ace-Nanter/tts-server/main)](https://github.com/Ace-Nanter/tts-server/commits/main/)
+[![License:MIT](https://badgen.net/github/license/Ace-Nanter/tts-server)](https://github.com/Ace-Nanter/tts-server/blob/main/LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-GPU%20CUDA-blue?logo=docker)](https://www.docker.com/)
 [![Chatterbox](https://img.shields.io/badge/Chatterbox-Multilingual%20V3-orange)](https://github.com/resemble-ai/chatterbox)
+
+> ℹ️ **Renaming in progress** — this project was formerly `chatterbox-tts-server`
+> (GitHub redirects the old URL). At this stage the engine is unchanged and still
+> wraps **Resemble AI's Chatterbox Multilingual V3**; a switch to a new engine
+> (OmniVoice) is planned as **step 2** of the migration.
 
 A self-hosted, **OpenAI-compatible** text-to-speech server wrapping [Resemble AI's Chatterbox](https://github.com/resemble-ai/chatterbox) — **Chatterbox Multilingual V3** (23+ languages) with **zero-shot voice cloning** from a short reference clip. Runs on an NVIDIA GPU (CUDA 12.4).
 
@@ -46,26 +51,26 @@ Use whatever reference your own registry serves:
 
 ```bash
 docker run -d --gpus all \
-  --name chatterbox \
+  --name tts-server \
   -p 4123:4123 \
   -v ./voices:/app/voices \
   -v ./hf_cache:/app/hf_cache \
-  your-registry.example.com/chatterbox-tts-server:latest
+  your-registry.example.com/tts-server:latest
 ```
 
 or with Docker Compose:
 
 ```yaml
 services:
-  chatterbox:
-    image: your-registry.example.com/chatterbox-tts-server:latest
-    container_name: chatterbox
+  tts-server:
+    image: your-registry.example.com/tts-server:latest
+    container_name: tts-server
     restart: unless-stopped
     ports:
       - "4123:4123"
     environment:
-      CHATTERBOX_T3_MODEL: v3      # v3 (default) or v2
-      CHATTERBOX_DEFAULT_LANG: fr
+      TTS_T3_MODEL: v3           # v3 (default) or v2 — legacy CHATTERBOX_T3_MODEL still accepted
+      TTS_DEFAULT_LANG: fr       # legacy CHATTERBOX_DEFAULT_LANG still accepted
     volumes:
       - ./voices:/app/voices
       - ./hf_cache:/app/hf_cache
@@ -121,25 +126,29 @@ with client.audio.speech.with_streaming_response.create(
 
 ## Configuration
 
+Every variable accepts both names: **`TTS_*` (new) wins when both are set**, otherwise the
+legacy `CHATTERBOX_*` name is used — so compose files and images can be switched over in any
+order, without downtime.
+
 | Env variable | Default | Description |
 |---|---|---|
-| `CHATTERBOX_T3_MODEL` | `v3` | Multilingual checkpoint: `v3` or `v2` |
-| `CHATTERBOX_DEVICE` | `cuda` | `cuda` or `cpu` |
-| `CHATTERBOX_DEFAULT_LANG` | `en` | Default language code when the voice has none |
-| `CHATTERBOX_SAMPLE_RATE` | `24000` | Output sample rate |
+| `TTS_T3_MODEL` | `v3` | Multilingual checkpoint: `v3` or `v2` (legacy: `CHATTERBOX_T3_MODEL`) |
+| `TTS_DEVICE` | `cuda` | `cuda` or `cpu` (legacy: `CHATTERBOX_DEVICE`) |
+| `TTS_DEFAULT_LANG` | `en` | Default language code when the voice has none (legacy: `CHATTERBOX_DEFAULT_LANG`) |
+| `TTS_SAMPLE_RATE` | `24000` | Output sample rate (legacy: `CHATTERBOX_SAMPLE_RATE`) |
 | `VOICES_DIR` | `/app/voices` | Persistent reference-voice library |
 | `HF_HOME` | `/app/hf_cache` | Hugging Face model cache |
 
 ## Building
 
 ```bash
-docker build -t chatterbox-tts-server .
+docker build -t tts-server .
 ```
 
 ## Automation
 
-- **`docker-image.yml`** — builds and pushes on every push to `main` (`latest`) and on `v*` tags; pull requests build without pushing.
-- **`sync-upstream.yml`** — weekly check that re-pins the upstream Chatterbox commit, so the image always tracks the official upstream without manual action.
+- **`docker-image.yml`** — builds and pushes on every push to `main` (`latest`) and on `v*` tags; pull requests build without pushing. The image is published as `…/tts-server`; the previous image name (`chatterbox-tts-server`) is left untouched in the registry as a rollback path.
+- **`sync-upstream.yml`** — weekly check that re-pins the upstream Chatterbox commit, so the image always tracks the official upstream without manual action. (Still tracks Chatterbox until the step-2 engine switch.)
 - **`dependabot.yml` + `dependabot-auto-merge.yml`** — keep the base image, GitHub Actions and Python dependencies fresh, auto-merged.
 
 ## Credits
