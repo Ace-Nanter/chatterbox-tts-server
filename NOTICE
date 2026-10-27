@@ -1,0 +1,32 @@
+NOTICE — TTS Server (OmniVoice engine)
+======================================
+
+This project wraps the **OmniVoice** text-to-speech model published by k2-fsa
+(https://github.com/k2-fsa/OmniVoice — Hugging Face: `k2-fsa/OmniVoice`).
+
+License of the code
+-------------------
+- The wrapper code in this repository is released under the MIT License
+  (see the `LICENSE` file).
+- OmniVoice's own source code is released under the Apache-2.0 License.
+
+License of the model weights — IMPORTANT
+----------------------------------------
+Per the upstream model card, the pre-trained OmniVoice weights are distributed
+under a **CC-BY-NC** (Attribution-NonCommercial) license, inherited from the
+constraints of their training data (e.g. the Emilia dataset). They are **not
+licensed for commercial use**:
+
+- non-commercial usage only (personal, research, evaluation);
+- do not run these weights in a revenue-generating deployment.
+
+Third-party components inside the checkpoint
+--------------------------------------------
+- The audio tokenizer is **Boson AI's Higgs Audio V2 tokenizer**, distributed
+  under a community license (built on Llama 3 components). Additional terms
+  from Boson AI and Meta may apply to derived/generated audio services.
+- The text model backbone inside the checkpoint is derived from **Qwen3**
+  (Apache-2.0).
+
+By pulling and running this project's Docker image, you accept the above
+third-party license terms that apply to the model weights it downloads.
