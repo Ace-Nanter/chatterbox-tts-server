@@ -16,7 +16,11 @@ jobs:
       # credentials are secrets. The README keeps a placeholder and never
       # mentions this host.
       DOCKER_REGISTRY_HOST: docker-registry.pandore.ovh
-      IMAGE_NAME: ${{ github.event.repository.name }}
+      # Renamed from `chatterbox-tts-server` to `tts-server`. Deliberately
+      # hardcoded (was: ${{ github.event.repository.name }}) so the image name
+      # does not depend on repo-rename timing. The previous image tag stays in
+      # the registry as a rollback path — never delete it.
+      IMAGE_NAME: tts-server
 
     steps:
       - name: Checkout repository
