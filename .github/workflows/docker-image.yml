@@ -9,6 +9,24 @@ on:
   workflow_dispatch:
 
 jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies (engine stubbed, no GPU needed)
+        run: |
+          pip install --quiet fastapi "uvicorn[standard]" python-multipart httpx pytest numpy soundfile requests
+
+      - name: Unit tests
+        run: python -m pytest tests/ -q
+
   docker:
     runs-on: ubuntu-latest
     env:
@@ -16,10 +34,9 @@ jobs:
       # credentials are secrets. The README keeps a placeholder and never
       # mentions this host.
       DOCKER_REGISTRY_HOST: docker-registry.pandore.ovh
-      # Renamed from `chatterbox-tts-server` to `tts-server`. Deliberately
-      # hardcoded (was: ${{ github.event.repository.name }}) so the image name
-      # does not depend on repo-rename timing. The previous image tag stays in
-      # the registry as a rollback path — never delete it.
+      # Deliberately hardcoded (not ${{ github.event.repository.name }}) so the
+      # image name does not depend on repo-rename timing. The previous image
+      # tag stays in the registry as a rollback path — never delete it.
       IMAGE_NAME: tts-server
 
     steps:
